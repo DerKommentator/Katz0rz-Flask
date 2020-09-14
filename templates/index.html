@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <script src="{{ url_for('static', filename='lib/vue.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/axios.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" type="text/css">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/x-icon">
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <meta charset="utf-8" />
+    <title>Katz0rz</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css?family=Tomorrow:400,500,600&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <div id="app">
+        <form action="/upload" method="post" enctype="multipart/form-data" ref="form">
+
+            <div class="container">
+                <h1>Upload your image</h1>
+
+                <div class="editor-field editor-field__textbox">
+                    <div class="editor-field__label-container">
+                        <label class="editor-field__label">File Upload</label>
+                    </div>
+
+                    <div class="editor-field__container">
+                        <input type="file" class="editor-field__input" onmouseover="generateNoise(this, 'input')"
+                               onmouseout="removeNoise(this, 'input')" accept="image/png, image/jpeg" name="file" ref="pictureInput" required/>
+                    </div>
+                    <span class="editor-field__bottom"></span>
+                    <div class="editor-field__noise"></div>
+                </div>
+                <button @click.prevent="uploadImage()">
+                    <div class="btn btn--primary" onmouseover="generateNoise(this, 'button')"
+                         onmouseout="removeNoise(this, 'button')">
+
+                        <div class="btn__container">
+                            Upload
+                        </div>
+
+                        <div class="btn__bottom"></div>
+                        <div class="btn__noise"></div>
+                    </div>
+                </button>
+            </div>
+        </form>
+        
+        <p v-if="!(score === '')" class="margin-align top-element">Score: [[ score ]]%</p>
+        <p v-if="!(predictedLabelValue === '')" class="margin-align">Predicted: [[ predictedLabelValue ]]</p><br>
+        <center><div class="crop"><img v-if="!(predictedLabelValue === '')" width="300" height="300" v-bind:src="imagePath + imageFileName"/></div></center>
+
+    </div>
+
+    <script>
+        var vm = new Vue({
+            delimiters : ['[[',']]'],
+            el: '#app',
+            data: {
+                score: '',
+                predictedLabelValue: '',
+                imagePath: 'static/uploaded/image/',
+                imageFileName: ''
+                //imagePath: 'images/template.png'
+            },
+            mounted() {
+            },
+            methods: {
+                imageValidation: function (pictureFile) {
+                    var re = /(?:\.([^.]+))?$/;
+
+                    if (!(pictureFile == null || pictureFile == undefined)) {
+                        if (pictureFile.size > 2097152) {
+                            alert('File too big (> 2MB)');
+                            return false;
+                        }
+                        else if (!(re.exec(pictureFile.name)[0] === ".png" ||
+                            re.exec(pictureFile.name)[0] === ".jpg" ||
+                            re.exec(pictureFile.name)[0] === ".jpeg")) {
+
+                            alert('Unsupported Media Type');
+                            return false;
+                        }
+                        else {
+                            return true;
+                        }
+                    }
+                    else {
+                        alert('No File chosen');
+                    }
+                },
+
+                uploadImage() {
+                    var pictureFile = this.$refs.pictureInput.files[0];
+
+                    if (this.imageValidation(pictureFile)) {
+
+                        let data = new FormData();
+                        data.append('file', pictureFile);
+
+                        let config = {
+                            header: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }
+                        axios.post("/upload", data, config)
+                            .then(function (response) {
+                                vm.score = 100 - parseInt(response.data.score);
+                                vm.predictedLabelValue = response.data.pred_label;
+
+                                vm.imageFileName = pictureFile.name;
+                                console.log(vm.imagePath + vm.imageFileName);
+                            })
+                            .catch(function (e) {
+                                alert(e);
+                                //console.log(e);
+                            });
+                    }
+
+
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
