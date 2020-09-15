@@ -26,8 +26,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 
 users = {
-    "tobi": generate_password_hash("HwRq/"),
-    "gast": generate_password_hash("kekw1234!")
+    "[USER]": generate_password_hash("[PW]")
 }
 
 CORS(app)
