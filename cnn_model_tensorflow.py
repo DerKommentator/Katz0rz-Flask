@@ -67,9 +67,11 @@ output_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
                                input_graph_def=sess.graph.as_graph_def(),
                                output_node_names=['output/Sigmoid'])
 
+model.save("cat-dogs.model")
+
 # write protobuf to disk
-with tf.compat.v1.gfile.GFile('graph.pb', "wb") as f:
-    f.write(output_graph_def.SerializeToString())
+#with tf.compat.v1.gfile.GFile('graph.pb', "wb") as f:
+#    f.write(output_graph_def.SerializeToString())
 
 """
 val_images = np.load("val_features.npy")
